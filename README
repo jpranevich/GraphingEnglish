@@ -1,0 +1,161 @@
+README for Joe Pranevivich's CS264 (CSCI E-292) Final Project
+
+"Graphing the English Language (For Fun And Profit)"
+
+Part 1: Describe Code and Application Files
+-------------------------------------------
+
+In this directory are the several files necessary to run the application.
+
+* starcluster.sample.config
+
+	This sample config file should be used with your starcluster
+	installation to correctly configure nltk
+
+* starcluster_plugins/nltk.py
+
+	Plugin for StarCluster (written by me - very basic) that will
+	install the relevant libraries and data files for NLTK
+	usage. Place in your "plugins" folder.
+
+* demo/
+
+	The files used in my brief video demonstration.
+
+* sentences.py
+
+	The first stage sentence tokenizer. Written using the NLTK
+	libraries, it using the Punkt tokenizer to divide an arbitrary
+	text into sentences while doing intelligent things with
+	abbreviations, etc. This is required as the base unit of the 
+	other NLTK tokenizers is a sentence.
+
+	./sentences.py <data file> > data.sentences
+
+* word_tag_map.py
+		
+	Second stage part-of-speech tagger. Takes in a general input
+	from the first stage and outputs it in a map/reduce-able format
+	with <key>\t<context>
+
+	This is the workhorse of the project and will take most of the
+	execution time.
+
+* word_tag_map_profile.py
+
+	Same as the above, but uses the cProfiler to output why it takes so
+	long. It's "pos_tag", unfortunately.
+
+* tab-sort.pl
+
+	Quick and dirty script to sort stdin based on the first tab-delimited
+	field. Replicates what Hadoop map/reduce would do in the sort phase.
+
+* dictionary_reduce.py
+
+	Takes in the context andanalyzes it for the word associations. 
+	Unlike the previous steps which exclusively used NLTK to determine
+	parts of speech, this script uses a different (my own, more simple)
+	method of knowing what words are associated with others. This will
+	make it not language-portable, but is necessary until NLTK can
+	become more robust.
+
+* commands.sh
+
+	A wrapper script to do a full run of a data directory on Hadoop.
+
+	./commands.sh <project dir>
+
+	Output will appear in <project dir>-out
+
+* analyze_output.py
+
+	Quick script to output statistics on words and a very very simple
+	text-based graph. (Unfortunately, the graph is based on the 
+	full count of the word used and not the top 15, but it's good
+	enough.)
+
+* datafile-half-gutenberg.txt
+
+	The result file that I received when running my project on HALF the
+	gutenberg corpus on an 85-node EC2 cluster.
+
+Part 2: How Your Program Should Be Run
+--------------------------------------
+
+Step 1: Configure StarCluster
+
+If running on Amazon / StarCluster, move the nltk.py plugin into you
+StarCluster plugins folder (.starcluster/plugins) and merge in the
+starcluster.sample.config into your own StarCluster configuration.
+It is assumed that you have available all of the AMIs and StarCluster
+development version, as was used in Homework 4.
+
+This is required as the nltk plugin will need to install nltk data files
+and packages at EC2 startup.
+
+If running locally, you will need to manually assure that nltk-python is 
+installed. From there, type "python -m nltk.downloader all" to preload
+the corpus materials. (This is required for the use of the punkt tokenizer,
+for example.) You may need to move /root/nltk_data to /usr/lib when this
+command completes. (I needed to do it on the AMI, but not on the Cloudera
+image.)
+
+Step 2: Gather Source Data
+
+I have included some example Project Gutenberg data, although you may
+install other files from Gutenberg at http://gutenberg.org
+
+If you want to go all out, my data was gathered from here:
+
+http://blog.prashanthellina.com/2008/05/04/n-gram-data-from-project-gutenberg/
+
+However, I did significant pruning from here to remove bilingual texts, 
+dictionaries, and duplicated data files. There were also some bugs
+discovered, so see my project documentation.
+
+Step 3: Generate Sentences
+
+Run "sentences.py" on each data file you want to process and place them 
+in a directory for EC2 processing. This script will write to standard out.
+
+./sentences.py <input file>
+
+You may want to use the "split" command to divide the data into units of
+10-50K lines, for easier map/reducing. Using map/reduce's default data
+size of 64MB will result in poor scaling across multiple nodes, so 
+cheat it by just using many files and take the FS blocksize hit.
+
+Step 4: Run the batch
+
+./commands.sh <directory name>
+
+This will trigger all of the relevant commands to start the batch on EC2
+and download the result files. You may want to tune the numReducers 
+parameter in this file before running.
+
+If you want to do a test by hand:
+
+cat <sentence data> | ./word_tag_map.py | ./tab-sort.pl | ./dictionary_reduce.pl
+
+will effectively simulate an EC2 run.
+
+Step 5: Analyze data
+
+Modify the "analyze_output.py" script to use your resultant output. It's
+not smart, so just cat all of your "part" files together. 
+
+After that, just run:
+
+./analyze_output.py <pos> <word>
+
+For example:
+
+./analyze_output.py noun dog
+
+
+
+
+
+
+
