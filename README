@@ -1,4 +1,5 @@
 README for Joe Pranevivich's CS264 (CSCI E-292) Final Project
+Copyright 2010, Joe Pranevich
 
 "Graphing the English Language (For Fun And Profit)"
 
@@ -17,10 +18,6 @@ In this directory are the several files necessary to run the application.
 	Plugin for StarCluster (written by me - very basic) that will
 	install the relevant libraries and data files for NLTK
 	usage. Place in your "plugins" folder.
-
-* demo/
-
-	The files used in my brief video demonstration.
 
 * sentences.py
 
@@ -74,11 +71,6 @@ In this directory are the several files necessary to run the application.
 	text-based graph. (Unfortunately, the graph is based on the 
 	full count of the word used and not the top 15, but it's good
 	enough.)
-
-* datafile-half-gutenberg.txt
-
-	The result file that I received when running my project on HALF the
-	gutenberg corpus on an 85-node EC2 cluster.
 
 Part 2: How Your Program Should Be Run
 --------------------------------------
@@ -152,10 +144,5 @@ After that, just run:
 For example:
 
 ./analyze_output.py noun dog
-
-
-
-
-
 
 
